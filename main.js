@@ -1,5 +1,6 @@
 // ─── KONFIGURATION ────────────────────────────────────────────
-const GITHUB_USERNAME = 'alpwrk';
+const CODEBERG_USERNAME = 'alpwrk';
+const API_BASE = 'https://codeberg.org/api/v1';
 
 const WEBSITE_LINKS = {
   // 'repo-name': 'https://deine-website.de',
@@ -55,21 +56,26 @@ async function loadRepos() {
   try {
     let page = 1, repos = [];
     while (true) {
-      const res = await fetch(`https://api.github.com/users/${GITHUB_USERNAME}/repos?per_page=100&page=${page}`);
+      const res = await fetch(`${API_BASE}/users/${CODEBERG_USERNAME}/repos?limit=50&page=${page}`);
       if (!res.ok) throw new Error(res.status);
       const data = await res.json();
       repos = repos.concat(data);
-      if (data.length < 100) break;
+      if (data.length < 50) break;
       page++;
     }
 
     repos.sort((a, b) => {
       if (a.archived !== b.archived) return a.archived ? 1 : -1;
-      return new Date(b.pushed_at) - new Date(a.pushed_at);
+      return new Date(b.updated) - new Date(a.updated);
     });
 
+    // Gitea /languages gibt Bytes pro Sprache — identisch zu GitHub
     const langData = await Promise.all(
-      repos.map(r => fetch(`https://api.github.com/repos/${GITHUB_USERNAME}/${r.name}/languages`).then(r => r.json()).catch(() => ({})))
+      repos.map(r =>
+        fetch(`${API_BASE}/repos/${CODEBERG_USERNAME}/${r.name}/languages`)
+          .then(res => res.ok ? res.json() : {})
+          .catch(() => ({}))
+      )
     );
 
     grid.innerHTML = repos.map((repo, i) => {
@@ -77,7 +83,9 @@ async function loadRepos() {
       const websiteUrl = WEBSITE_LINKS[repo.name];
       const topics = (repo.topics || []).filter(t => t !== 'wip');
       const langs = langData[i] || {};
-      const created = new Date(repo.created_at).toLocaleDateString('de-DE');
+      // Gitea: ISO 8601 mit Timezone, z.B. "2024-03-01T12:00:00+01:00"
+      const createdRaw = repo.created || repo.created_at;
+      const created = createdRaw ? new Date(createdRaw).toLocaleDateString('de-DE') : '—';
 
       return `
         <div class="project-card" onclick="window.open('${websiteUrl || repo.html_url}','_blank')" style="cursor:pointer">
@@ -85,7 +93,7 @@ async function loadRepos() {
           <span style="display:flex;align-items:center;gap:18px;grid-column:2;grid-row:1">
             ${websiteUrl
               ? `<a class="project-link" href="${websiteUrl}" target="_blank" onclick="event.stopPropagation()">${new URL(websiteUrl).hostname} ↗</a>`
-              : `<a class="project-link" href="${repo.html_url}" target="_blank" onclick="event.stopPropagation()">github ↗</a>`
+              : ''
             }
             <span class="status-dot ${status}"></span>
           </span>
@@ -100,7 +108,7 @@ async function loadRepos() {
 
   } catch (e) {
     grid.innerHTML = `<div class="project-card" style="color:#e55;font-family:'DM Mono',monospace;font-size:0.8rem">
-      fehler beim laden — username korrekt? (${e.message})
+      fehler beim laden — codeberg erreichbar? username korrekt? (${e.message})
     </div>`;
   }
 }
