@@ -1,11 +1,7 @@
-// ─── KONFIGURATION ────────────────────────────────────────────
 const CODEBERG_USERNAME = 'alpwrk';
 const API_BASE = 'https://codeberg.org/api/v1';
 
-const WEBSITE_LINKS = {
-  // 'repo-name': 'https://deine-website.de',
-};
-// ─────────────────────────────────────────────────────────────
+const WEBSITE_LINKS = {};
 
 function getStatus(repo) {
   if (repo.archived) return 'archived';
@@ -25,7 +21,7 @@ function langColor(lang) {
 
 function linkifyDesc(text) {
   return text.replace(/\b([a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*\.[a-zA-Z]{2,}(?:\/[^\s]*)?)/g, (match) =>
-    `<a href="https://${match}" target="_blank" onclick="event.stopPropagation()">${match} ↗</a>`
+    `<a href="https://${match}" target="_blank" onclick="event.stopPropagation()">${match}</a>`
   );
 }
 
@@ -69,7 +65,6 @@ async function loadRepos() {
       return new Date(b.updated) - new Date(a.updated);
     });
 
-    // Gitea /languages gibt Bytes pro Sprache — identisch zu GitHub
     const langData = await Promise.all(
       repos.map(r =>
         fetch(`${API_BASE}/repos/${CODEBERG_USERNAME}/${r.name}/languages`)
@@ -80,10 +75,9 @@ async function loadRepos() {
 
     grid.innerHTML = repos.map((repo, i) => {
       const status = getStatus(repo);
-      const websiteUrl = WEBSITE_LINKS[repo.name];
+      const websiteUrl = WEBSITE_LINKS[repo.name] || repo.website || null;
       const topics = (repo.topics || []).filter(t => t !== 'wip');
       const langs = langData[i] || {};
-      // Gitea: ISO 8601 mit Timezone, z.B. "2024-03-01T12:00:00+01:00"
       const createdRaw = repo.created || repo.created_at;
       const created = createdRaw ? new Date(createdRaw).toLocaleDateString('de-DE') : '—';
 
