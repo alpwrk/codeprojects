@@ -84,14 +84,14 @@ async function loadRepos() {
       return `
         <div class="project-card" onclick="window.open('${websiteUrl || repo.html_url}','_blank')" style="cursor:pointer">
           <span class="project-name">${repo.name}</span>
-          <span style="display:flex;align-items:center;gap:18px;grid-column:2;grid-row:1">
+          <span style="display:flex;align-items:center;gap:18px;grid-column:2;grid-row:1;justify-content:flex-end">
             ${websiteUrl
               ? `<a class="project-link" href="${websiteUrl}" target="_blank" onclick="event.stopPropagation()">${new URL(websiteUrl).hostname} ↗</a>`
               : ''
             }
             <span class="status-dot ${status}"></span>
           </span>
-          <span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);letter-spacing:0.04em;grid-column:2;grid-row:2;align-self:start;white-space:nowrap">CREATED ${created}</span>
+          <span style="font-family:'DM Mono',monospace;font-size:0.68rem;color:var(--muted);letter-spacing:0.04em;grid-column:2;grid-row:2;align-self:start;justify-self:end;white-space:nowrap">CREATED ${created}</span>
           <p class="project-desc">${repo.description ? linkifyDesc(repo.description) : '<span style="color:#333">NO DESCRIPTION</span>'}</p>
           <div class="project-meta">
             <div style="width:100%">${langBar(langs)}</div>
