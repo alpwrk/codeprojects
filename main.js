@@ -62,7 +62,7 @@ async function loadRepos() {
 
     repos.sort((a, b) => {
       if (a.archived !== b.archived) return a.archived ? 1 : -1;
-      return new Date(b.updated) - new Date(a.updated);
+      return new Date(b.updated_at) - new Date(a.updated_at);
     });
 
     const langData = await Promise.all(
