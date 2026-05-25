@@ -1,5 +1,5 @@
-const CODEBERG_USERNAME = 'alpwrk';
-const API_BASE = 'https://codeberg.org/api/v1';
+const GITHUB_USERNAME = 'alpwrk';
+const API_BASE = 'https://api.github.com';
 
 const WEBSITE_LINKS = {};
 
@@ -52,11 +52,11 @@ async function loadRepos() {
   try {
     let page = 1, repos = [];
     while (true) {
-      const res = await fetch(`${API_BASE}/users/${CODEBERG_USERNAME}/repos?limit=50&page=${page}`);
+      const res = await fetch(`${API_BASE}/users/${GITHUB_USERNAME}/repos?per_page=100&page=${page}&sort=updated`);
       if (!res.ok) throw new Error(res.status);
       const data = await res.json();
       repos = repos.concat(data);
-      if (data.length < 50) break;
+      if (data.length < 100) break;
       page++;
     }
 
@@ -67,7 +67,7 @@ async function loadRepos() {
 
     const langData = await Promise.all(
       repos.map(r =>
-        fetch(`${API_BASE}/repos/${CODEBERG_USERNAME}/${r.name}/languages`)
+        fetch(`${API_BASE}/repos/${GITHUB_USERNAME}/${r.name}/languages`)
           .then(res => res.ok ? res.json() : {})
           .catch(() => ({}))
       )
@@ -75,10 +75,10 @@ async function loadRepos() {
 
     grid.innerHTML = repos.map((repo, i) => {
       const status = getStatus(repo);
-      const websiteUrl = WEBSITE_LINKS[repo.name] || repo.website || null;
+      const websiteUrl = WEBSITE_LINKS[repo.name] || repo.homepage || null;
       const topics = (repo.topics || []).filter(t => t !== 'wip');
       const langs = langData[i] || {};
-      const createdRaw = repo.created || repo.created_at;
+      const createdRaw = repo.created_at;
       const created = createdRaw ? new Date(createdRaw).toLocaleDateString('de-DE') : '—';
 
       return `
@@ -102,7 +102,7 @@ async function loadRepos() {
 
   } catch (e) {
     grid.innerHTML = `<div class="project-card" style="color:#e55;font-family:'DM Mono',monospace;font-size:0.8rem">
-      fehler beim laden — codeberg erreichbar? username korrekt? (${e.message})
+      fehler beim laden — github erreichbar? username korrekt? (${e.message})
     </div>`;
   }
 }
