@@ -82,7 +82,7 @@ async function loadRepos() {
       const created = createdRaw ? new Date(createdRaw).toLocaleDateString('de-DE') : '—';
 
       return `
-        <div class="project-card" onclick="window.open('${websiteUrl || repo.html_url}','_blank')" style="cursor:pointer">
+        <div class="project-card" onclick="window.open('${repo.html_url}','_blank')" style="cursor:pointer">
           <span class="project-name">${repo.name}</span>
           <span style="display:flex;align-items:center;gap:18px;grid-column:2;grid-row:1;justify-content:flex-end">
             ${websiteUrl
